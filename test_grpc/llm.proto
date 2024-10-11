@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package llm;
+
+import "google/protobuf/wrappers.proto";
+
+// LlmServer 服务定义
+service LlmServer {
+  // GetTask 方法
+  rpc GetTask (TaskRequest) returns (TaskResponse);
+}
+
+// TaskRequest 消息定义
+message TaskRequest {
+  // 当前会话的 ID 号
+  string session_id = 1;
+  
+  // 必填的不定长的字符串
+  string text = 2;
+  
+  // 可选的图片数据，使用 google.protobuf.BytesValue 来存储二进制数据
+  google.protobuf.BytesValue image = 3;
+}
+
+// TaskResponse 消息定义
+message TaskResponse {
+  // 返回的字符串
+  string result = 1;
+}

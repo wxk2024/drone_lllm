@@ -1,0 +1,12 @@
+# 忽略所有文件和目录
+*
+
+# 不忽略 .gitignore 文件本身
+!.gitignore
+
+# 不忽略 test_grpc/llm.proto 文件
+!test_grpc/llm.proto
+
+# 忽略 test_grpc 目录下的其他所有文件和目录
+/test_grpc/*
+!/test_grpc/llm.proto
