@@ -1,5 +1,14 @@
 # 忽略所有文件和目录
-*
+agent/
+data/
+log/
+main/.env
+main/__pycache__
+main/script.deb.sh
+session/
+test_feature/
+test_grpc/
+test_server/
 
 # 不忽略 .gitignore 文件本身
 !.gitignore
@@ -10,3 +19,4 @@
 # 忽略 test_grpc 目录下的其他所有文件和目录
 /test_grpc/*
 !/test_grpc/llm.proto
+
