@@ -4,6 +4,7 @@ data/
 log/
 main/.env
 main/__pycache__
+main/nohup.out
 main/script.deb.sh
 session/
 test_feature/

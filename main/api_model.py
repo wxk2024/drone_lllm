@@ -22,7 +22,9 @@ from pydantic import BaseModel, Field
 from typing_extensions import Annotated, TypedDict
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import START, MessagesState, StateGraph,END
-from output_format import FlyTask
+from langgraph.prebuilt import ToolNode, tools_condition
+from tools import BaiduDitu
+from output_format import FlyTask,OnePlace
 from log import logger
 from init_config import Settings
 import json
@@ -47,11 +49,11 @@ class GraphBuilder():
     _BM = TypeVar("_BM", bound=BaseModel)
     _DictOrPydanticClass = Union[Dict[str, Any], Type[_BM], Type]
     def __init__(self):
-        self.llm = None
-        self.local_llm = None
-        self.prompt = None
-        self.graph = None
-        self.settings:Settings = None
+        self.llm = None                 # online 大模型用来文本对话
+        self.local_llm = None           # local  大模型用来图片转文字
+        self.prompt = None              # 提示词：通过prompt.json
+        self.graph = None               # langgraph 框架最主要的作用
+        self.settings:Settings = None   # 通过用户传过来的配置信息
 
     def build(self):
         if self.llm is None or self.settings is None:
@@ -66,13 +68,24 @@ class GraphBuilder():
         builder = StateGraph(state_schema=State)
         # Define the function that calls the model
         def call_model(state: State):
-            response = self.llm.invoke(state["messages"])
+            response = self.llm.invoke(state["messages"]) # response 现在已经被格式化了
+            if len(response.location.baiduditu) == 0 \
+                and response.location.region != "" \
+                and response.location.query != "":
+                response.location.baiduditu = [OnePlace.model_validate(i) for i in BaiduDitu().invoke({"region":response.location.region,"query":response.location.query})]
             return {"messages": [AIMessage(content=response.model_dump_json())],"task":response}
-        
+        tool_node = ToolNode(tools=[BaiduDitu()])        
         # Define the (single) node in the graph
+        builder.add_node("tools",tool_node)
         builder.add_node("model", call_model)
         builder.add_edge(START, "model")
         builder.add_edge("model",END)
+        builder.add_conditional_edges(
+            "model",
+            tools_condition,
+        )
+        # Any time a tool is called, we return to the chatbot to decide the next step
+        builder.add_edge("tools", "model")
 
         # Add memory
         memory = MemorySaver()
