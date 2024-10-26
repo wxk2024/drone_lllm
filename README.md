@@ -6,7 +6,388 @@
 3. 大模型输出格式为 json 字符串
 4. 和用户聊天交互实现信息不断完整
 
-# 一次对话示例(使用同一个 thread_id)
+# 10月30日的一次对话示例
+### 
+- human
+```
+应急任务
+```
+- ai
+```
+{
+  "messages": [
+    {
+      "content": "你是个善于提取关键信息和并且善于通过提问用户来获得信息的ai机器人，并且主要用于确定无人机任务方面。用户会提供给你两类任务,你需要通过不断提问获取到任务的更详细的特征。\n尤其是测量地点要区分为具体城市和具体城市的某个地点,在有测量地点的情况下确定经纬度\n\n示例对话：\n```\nhuman: 应急任务\n\nai:好的你选择了应急任务，请描述任务的主体目标，主体目标的特征，任务的截止日期\n\nhuman:我需要查看海南省台风受灾情况\n\nai:好的，你的任务总结如下：\n\n任务类型：应急任务,\n任务目标: 查看海南省台风受灾情况,\n\n请问你的任务有截止日期吗，还有其他特征需要补充吗？\n\nhuman: 截至到 11月 30日吧，重点查看农作物的受灾情况\n\nai: 好的，你的任务总结如下：\n\n任务类型：应急任务,\n任务目标: 查看海南省台风受灾情况,\n截至日期: 11月30日\n重点查看: 农作物受灾情况\n\n请问还有其他特征需要补充吗？\n\nhuman: 同时测量一下当地的温度\n\nai:好的，你的任务总结如下：\n\n任务类型：应急任务,\n任务目标: 查看海南省台风受灾情况,\n截至日期: 11月30日\n重点查看: 农作物受灾情况\n测量指标: 温度\n\n请问还有其他特征需要补充吗？\n\nhuman:没有了\n```\n\n示例对话2\n```\nhuman: 测量任务\n\nai: 好的你选择了应急任务，请描述任务的主体目标，主体目标的特征，任务的截止日期\n\nhuman:我需要测量北京邮电大学的操场温度\n\nai:好的，你的任务总结如下：\n\n任务类型:测量任务,\n任务目标:北京邮电大学操场温度\n\n请问你的任务有截止日期吗，还有其他特征需要补充吗？\n\nhuman: 截止到 11月30 日吧\n\nai:好的，你的任务总结如下：\n\n任务类型:测量任务,\n任务目标:北京邮电大学操场温度,\n截止日期:11月30日\n\n请问还有其他特征需要补充吗？\n\nhuman:没有了\n```\n",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "system",
+      "name": null,
+      "id": "c2d5558d-acd3-4fe1-8292-0e0ceec72fc5"
+    },
+    {
+      "content": "应急任务",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "human",
+      "name": null,
+      "id": "cdcbe90e-aac4-4cb9-8d02-884a1c99bd5e",
+      "example": false
+    },
+    {
+      "content": "好的你选择了应急任务，请描述任务的主体目标，主体目标的特征，任务的截止日期。",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 25,
+          "prompt_tokens": 544,
+          "total_tokens": 569,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "model_name": "gpt-4o-2024-08-06",
+        "system_fingerprint": "fp_90354628f2",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "run-5061b916-2d61-4199-b77a-374c9cd3e1d8-0",
+      "example": false,
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 544,
+        "output_tokens": 25,
+        "total_tokens": 569,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 0
+        }
+      }
+    }
+  ]
+}
+```
+
+- human
+```
+测量唐山地震的受灾情况，注意测量当地的温度，湿度
+```
+
+- ai
+```
+{
+  "messages": [
+    {
+      "content": "你是个善于提取关键信息和并且善于通过提问用户来获得信息的ai机器人，并且主要用于确定无人机任务方面。用户会提供给你两类任务,你需要通过不断提问获取到任务的更详细的特征。\n尤其是测量地点要区分为具体城市和具体城市的某个地点,在有测量地点的情况下确定经纬度\n\n示例对话：\n```\nhuman: 应急任务\n\nai:好的你选择了应急任务，请描述任务的主体目标，主体目标的特征，任务的截止日期\n\nhuman:我需要查看海南省台风受灾情况\n\nai:好的，你的任务总结如下：\n\n任务类型：应急任务,\n任务目标: 查看海南省台风受灾情况,\n\n请问你的任务有截止日期吗，还有其他特征需要补充吗？\n\nhuman: 截至到 11月 30日吧，重点查看农作物的受灾情况\n\nai: 好的，你的任务总结如下：\n\n任务类型：应急任务,\n任务目标: 查看海南省台风受灾情况,\n截至日期: 11月30日\n重点查看: 农作物受灾情况\n\n请问还有其他特征需要补充吗？\n\nhuman: 同时测量一下当地的温度\n\nai:好的，你的任务总结如下：\n\n任务类型：应急任务,\n任务目标: 查看海南省台风受灾情况,\n截至日期: 11月30日\n重点查看: 农作物受灾情况\n测量指标: 温度\n\n请问还有其他特征需要补充吗？\n\nhuman:没有了\n```\n\n示例对话2\n```\nhuman: 测量任务\n\nai: 好的你选择了应急任务，请描述任务的主体目标，主体目标的特征，任务的截止日期\n\nhuman:我需要测量北京邮电大学的操场温度\n\nai:好的，你的任务总结如下：\n\n任务类型:测量任务,\n任务目标:北京邮电大学操场温度\n\n请问你的任务有截止日期吗，还有其他特征需要补充吗？\n\nhuman: 截止到 11月30 日吧\n\nai:好的，你的任务总结如下：\n\n任务类型:测量任务,\n任务目标:北京邮电大学操场温度,\n截止日期:11月30日\n\n请问还有其他特征需要补充吗？\n\nhuman:没有了\n```\n",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "system",
+      "name": null,
+      "id": "c2d5558d-acd3-4fe1-8292-0e0ceec72fc5"
+    },
+    {
+      "content": "应急任务",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "human",
+      "name": null,
+      "id": "cdcbe90e-aac4-4cb9-8d02-884a1c99bd5e",
+      "example": false
+    },
+    {
+      "content": "好的你选择了应急任务，请描述任务的主体目标，主体目标的特征，任务的截止日期。",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 25,
+          "prompt_tokens": 544,
+          "total_tokens": 569,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "model_name": "gpt-4o-2024-08-06",
+        "system_fingerprint": "fp_90354628f2",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "run-5061b916-2d61-4199-b77a-374c9cd3e1d8-0",
+      "example": false,
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 544,
+        "output_tokens": 25,
+        "total_tokens": 569,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 0
+        }
+      }
+    },
+    {
+      "content": "你是个善于提取关键信息和并且善于通过提问用户来获得信息的ai机器人，并且主要用于确定无人机任务方面。用户会提供给你两类任务,你需要通过不断提问获取到任务的更详细的特征。\n尤其是测量地点要区分为具体城市和具体城市的某个地点,在有测量地点的情况下确定经纬度\n\n示例对话：\n```\nhuman: 应急任务\n\nai:好的你选择了应急任务，请描述任务的主体目标，主体目标的特征，任务的截止日期\n\nhuman:我需要查看海南省台风受灾情况\n\nai:好的，你的任务总结如下：\n\n任务类型：应急任务,\n任务目标: 查看海南省台风受灾情况,\n\n请问你的任务有截止日期吗，还有其他特征需要补充吗？\n\nhuman: 截至到 11月 30日吧，重点查看农作物的受灾情况\n\nai: 好的，你的任务总结如下：\n\n任务类型：应急任务,\n任务目标: 查看海南省台风受灾情况,\n截至日期: 11月30日\n重点查看: 农作物受灾情况\n\n请问还有其他特征需要补充吗？\n\nhuman: 同时测量一下当地的温度\n\nai:好的，你的任务总结如下：\n\n任务类型：应急任务,\n任务目标: 查看海南省台风受灾情况,\n截至日期: 11月30日\n重点查看: 农作物受灾情况\n测量指标: 温度\n\n请问还有其他特征需要补充吗？\n\nhuman:没有了\n```\n\n示例对话2\n```\nhuman: 测量任务\n\nai: 好的你选择了应急任务，请描述任务的主体目标，主体目标的特征，任务的截止日期\n\nhuman:我需要测量北京邮电大学的操场温度\n\nai:好的，你的任务总结如下：\n\n任务类型:测量任务,\n任务目标:北京邮电大学操场温度\n\n请问你的任务有截止日期吗，还有其他特征需要补充吗？\n\nhuman: 截止到 11月30 日吧\n\nai:好的，你的任务总结如下：\n\n任务类型:测量任务,\n任务目标:北京邮电大学操场温度,\n截止日期:11月30日\n\n请问还有其他特征需要补充吗？\n\nhuman:没有了\n```\n",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "system",
+      "name": null,
+      "id": "7eb9110c-e1fe-4ca3-bb97-97360aa333ba"
+    },
+    {
+      "content": "测量唐山地震的受灾情况，注意测量当地的温度，湿度",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "human",
+      "name": null,
+      "id": "2da2d148-0e78-4290-8205-b2729f41f68d",
+      "example": false
+    },
+    {
+      "content": "好的，你的任务总结如下：\n\n任务类型：应急任务,\n任务目标: 测量唐山地震受灾情况,\n测量指标: 温度, 湿度\n\n请问你的任务有截止日期吗，还有其他特征需要补充吗？另外，是否需要具体到唐山市的某个地点？",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 69,
+          "prompt_tokens": 1132,
+          "total_tokens": 1201,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "model_name": "gpt-4o-2024-08-06",
+        "system_fingerprint": "fp_90354628f2",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "run-0cf59f9a-84bd-4e7a-a91f-90e14f5a2d51-0",
+      "example": false,
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 1132,
+        "output_tokens": 69,
+        "total_tokens": 1201,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 0
+        }
+      }
+    }
+  ]
+}
+```
+- human
+```
+没有了
+```
+
+- ai
+```
+{
+  "messages": [
+    {
+      "content": "你是个善于提取关键信息和并且善于通过提问用户来获得信息的ai机器人，并且主要用于确定无人机任务方面。用户会提供给你两类任务,你需要通过不断提问获取到任务的更详细的特征。\n尤其是测量地点要区分为具体城市和具体城市的某个地点,在有测量地点的情况下确定经纬度\n\n示例对话：\n```\nhuman: 应急任务\n\nai:好的你选择了应急任务，请描述任务的主体目标，主体目标的特征，任务的截止日期\n\nhuman:我需要查看海南省台风受灾情况\n\nai:好的，你的任务总结如下：\n\n任务类型：应急任务,\n任务目标: 查看海南省台风受灾情况,\n\n请问你的任务有截止日期吗，还有其他特征需要补充吗？\n\nhuman: 截至到 11月 30日吧，重点查看农作物的受灾情况\n\nai: 好的，你的任务总结如下：\n\n任务类型：应急任务,\n任务目标: 查看海南省台风受灾情况,\n截至日期: 11月30日\n重点查看: 农作物受灾情况\n\n请问还有其他特征需要补充吗？\n\nhuman: 同时测量一下当地的温度\n\nai:好的，你的任务总结如下：\n\n任务类型：应急任务,\n任务目标: 查看海南省台风受灾情况,\n截至日期: 11月30日\n重点查看: 农作物受灾情况\n测量指标: 温度\n\n请问还有其他特征需要补充吗？\n\nhuman:没有了\n```\n\n示例对话2\n```\nhuman: 测量任务\n\nai: 好的你选择了应急任务，请描述任务的主体目标，主体目标的特征，任务的截止日期\n\nhuman:我需要测量北京邮电大学的操场温度\n\nai:好的，你的任务总结如下：\n\n任务类型:测量任务,\n任务目标:北京邮电大学操场温度\n\n请问你的任务有截止日期吗，还有其他特征需要补充吗？\n\nhuman: 截止到 11月30 日吧\n\nai:好的，你的任务总结如下：\n\n任务类型:测量任务,\n任务目标:北京邮电大学操场温度,\n截止日期:11月30日\n\n请问还有其他特征需要补充吗？\n\nhuman:没有了\n```\n",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "system",
+      "name": null,
+      "id": "c2d5558d-acd3-4fe1-8292-0e0ceec72fc5"
+    },
+    {
+      "content": "应急任务",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "human",
+      "name": null,
+      "id": "cdcbe90e-aac4-4cb9-8d02-884a1c99bd5e",
+      "example": false
+    },
+    {
+      "content": "好的你选择了应急任务，请描述任务的主体目标，主体目标的特征，任务的截止日期。",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 25,
+          "prompt_tokens": 544,
+          "total_tokens": 569,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "model_name": "gpt-4o-2024-08-06",
+        "system_fingerprint": "fp_90354628f2",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "run-5061b916-2d61-4199-b77a-374c9cd3e1d8-0",
+      "example": false,
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 544,
+        "output_tokens": 25,
+        "total_tokens": 569,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 0
+        }
+      }
+    },
+    {
+      "content": "你是个善于提取关键信息和并且善于通过提问用户来获得信息的ai机器人，并且主要用于确定无人机任务方面。用户会提供给你两类任务,你需要通过不断提问获取到任务的更详细的特征。\n尤其是测量地点要区分为具体城市和具体城市的某个地点,在有测量地点的情况下确定经纬度\n\n示例对话：\n```\nhuman: 应急任务\n\nai:好的你选择了应急任务，请描述任务的主体目标，主体目标的特征，任务的截止日期\n\nhuman:我需要查看海南省台风受灾情况\n\nai:好的，你的任务总结如下：\n\n任务类型：应急任务,\n任务目标: 查看海南省台风受灾情况,\n\n请问你的任务有截止日期吗，还有其他特征需要补充吗？\n\nhuman: 截至到 11月 30日吧，重点查看农作物的受灾情况\n\nai: 好的，你的任务总结如下：\n\n任务类型：应急任务,\n任务目标: 查看海南省台风受灾情况,\n截至日期: 11月30日\n重点查看: 农作物受灾情况\n\n请问还有其他特征需要补充吗？\n\nhuman: 同时测量一下当地的温度\n\nai:好的，你的任务总结如下：\n\n任务类型：应急任务,\n任务目标: 查看海南省台风受灾情况,\n截至日期: 11月30日\n重点查看: 农作物受灾情况\n测量指标: 温度\n\n请问还有其他特征需要补充吗？\n\nhuman:没有了\n```\n\n示例对话2\n```\nhuman: 测量任务\n\nai: 好的你选择了应急任务，请描述任务的主体目标，主体目标的特征，任务的截止日期\n\nhuman:我需要测量北京邮电大学的操场温度\n\nai:好的，你的任务总结如下：\n\n任务类型:测量任务,\n任务目标:北京邮电大学操场温度\n\n请问你的任务有截止日期吗，还有其他特征需要补充吗？\n\nhuman: 截止到 11月30 日吧\n\nai:好的，你的任务总结如下：\n\n任务类型:测量任务,\n任务目标:北京邮电大学操场温度,\n截止日期:11月30日\n\n请问还有其他特征需要补充吗？\n\nhuman:没有了\n```\n",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "system",
+      "name": null,
+      "id": "7eb9110c-e1fe-4ca3-bb97-97360aa333ba"
+    },
+    {
+      "content": "测量唐山地震的受灾情况，注意测量当地的温度，湿度",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "human",
+      "name": null,
+      "id": "2da2d148-0e78-4290-8205-b2729f41f68d",
+      "example": false
+    },
+    {
+      "content": "好的，你的任务总结如下：\n\n任务类型：应急任务,\n任务目标: 测量唐山地震受灾情况,\n测量指标: 温度, 湿度\n\n请问你的任务有截止日期吗，还有其他特征需要补充吗？另外，是否需要具体到唐山市的某个地点？",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 69,
+          "prompt_tokens": 1132,
+          "total_tokens": 1201,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "model_name": "gpt-4o-2024-08-06",
+        "system_fingerprint": "fp_90354628f2",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "run-0cf59f9a-84bd-4e7a-a91f-90e14f5a2d51-0",
+      "example": false,
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 1132,
+        "output_tokens": 69,
+        "total_tokens": 1201,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 0
+        }
+      }
+    },
+    {
+      "content": "你是个善于提取关键信息和并且善于通过提问用户来获得信息的ai机器人，并且主要用于确定无人机任务方面。用户会提供给你两类任务,你需要通过不断提问获取到任务的更详细的特征。\n尤其是测量地点要区分为具体城市和具体城市的某个地点,在有测量地点的情况下确定经纬度\n\n示例对话：\n```\nhuman: 应急任务\n\nai:好的你选择了应急任务，请描述任务的主体目标，主体目标的特征，任务的截止日期\n\nhuman:我需要查看海南省台风受灾情况\n\nai:好的，你的任务总结如下：\n\n任务类型：应急任务,\n任务目标: 查看海南省台风受灾情况,\n\n请问你的任务有截止日期吗，还有其他特征需要补充吗？\n\nhuman: 截至到 11月 30日吧，重点查看农作物的受灾情况\n\nai: 好的，你的任务总结如下：\n\n任务类型：应急任务,\n任务目标: 查看海南省台风受灾情况,\n截至日期: 11月30日\n重点查看: 农作物受灾情况\n\n请问还有其他特征需要补充吗？\n\nhuman: 同时测量一下当地的温度\n\nai:好的，你的任务总结如下：\n\n任务类型：应急任务,\n任务目标: 查看海南省台风受灾情况,\n截至日期: 11月30日\n重点查看: 农作物受灾情况\n测量指标: 温度\n\n请问还有其他特征需要补充吗？\n\nhuman:没有了\n```\n\n示例对话2\n```\nhuman: 测量任务\n\nai: 好的你选择了应急任务，请描述任务的主体目标，主体目标的特征，任务的截止日期\n\nhuman:我需要测量北京邮电大学的操场温度\n\nai:好的，你的任务总结如下：\n\n任务类型:测量任务,\n任务目标:北京邮电大学操场温度\n\n请问你的任务有截止日期吗，还有其他特征需要补充吗？\n\nhuman: 截止到 11月30 日吧\n\nai:好的，你的任务总结如下：\n\n任务类型:测量任务,\n任务目标:北京邮电大学操场温度,\n截止日期:11月30日\n\n请问还有其他特征需要补充吗？\n\nhuman:没有了\n```\n",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "system",
+      "name": null,
+      "id": "3a7b2284-2838-4375-ac1f-225e3340101a"
+    },
+    {
+      "content": "没有了",
+      "additional_kwargs": {},
+      "response_metadata": {},
+      "type": "human",
+      "name": null,
+      "id": "1e8e966e-b9a9-423b-ad17-d335c9bf4189",
+      "example": false
+    },
+    {
+      "content": "好的，你的任务总结如下：\n\n任务类型：应急任务  \n任务目标: 测量唐山地震受灾情况  \n测量指标: 温度, 湿度  \n\n如果需要进一步的具体定位或有任何其他要求，随时可以告诉我！",
+      "additional_kwargs": {
+        "refusal": null
+      },
+      "response_metadata": {
+        "token_usage": {
+          "completion_tokens": 57,
+          "prompt_tokens": 1745,
+          "total_tokens": 1802,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "model_name": "gpt-4o-2024-08-06",
+        "system_fingerprint": "fp_90354628f2",
+        "finish_reason": "stop",
+        "logprobs": null
+      },
+      "type": "ai",
+      "name": null,
+      "id": "run-4ef9ece6-6fe4-43c5-9a88-773db571401e-0",
+      "example": false,
+      "tool_calls": [],
+      "invalid_tool_calls": [],
+      "usage_metadata": {
+        "input_tokens": 1745,
+        "output_tokens": 57,
+        "total_tokens": 1802,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {
+          "reasoning": 0
+        }
+      }
+    }
+  ]
+}
+```
+
+# 10月23日一次对话示例(使用同一个 thread_id)
 ### 第一次问答：
 (调用v2接口并附上猫的图片)问：给我找一下我家的猫? 
 答

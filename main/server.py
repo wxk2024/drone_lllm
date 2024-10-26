@@ -26,12 +26,12 @@ llm = ChatOpenAI(
     base_url=settings.openai_api_base
 )
 # 实现 image-to-text
-local_llm = ChatGLM4_LLM()
+# local_llm = ChatGLM4_LLM()
 
 graph_builder = GraphBuilder()
 graph_builder.set_settings(settings)
 graph_builder.set_llm(llm)
-graph_builder.set_local_llm(local_llm)
+# graph_builder.set_local_llm(local_llm)
 graph = graph_builder.build()
 
 app = FastAPI(
@@ -40,6 +40,7 @@ app = FastAPI(
     description="A simple api server using Langchain's Runnable interfaces",)
 
 config = {"configurable": {"thread_id": "1"}}
+print(graph.invoke({"messages": settings._prompt.format_messages(text="测量任务")},config=config))
 print(graph.invoke({"messages": settings._prompt.format_messages(text="给我测量一下北京邮电大学操场的温度")},config=config))
 
 @app.get("/")
@@ -50,12 +51,7 @@ class TaskDescription(BaseModel):
     thread_id: str = Field(description="标识一个session")
     text: str = Field(description = "标识用户的文字输入")
 
-# def task_desription_checker(data:str = Form(...)):
-#     try:
-#         task = TaskDescription.parse_raw(data)
-#     except ValidationError as e:
-#         raise HTTPException()
-#     return task
+
 
 @app.post("/masifan/v1")
 def get_task_v1(task:TaskDescription):

@@ -44,6 +44,9 @@ class State(TypedDict):
     messages: Annotated[list, add_messages]
     task: FlyTask
 
+# 由于当前任务字段迟迟确定不了，只好用这个了！
+class State_New(TypedDict):
+    messages: Annotated[list, add_messages]
 
 class GraphBuilder():
     _BM = TypeVar("_BM", bound=BaseModel)
@@ -62,18 +65,21 @@ class GraphBuilder():
         # 加载 smith
         # 加载 output_structure
         self._load_smith()
-        self._set_structed_output()
+        # 由于 task 字段没有办法确认
+        # self._set_structed_output()
         logger.info("开始创建 langgraph")
 
-        builder = StateGraph(state_schema=State)
+        builder = StateGraph(state_schema=State_New)
         # Define the function that calls the model
         def call_model(state: State):
             response = self.llm.invoke(state["messages"]) # response 现在已经被格式化了
-            if len(response.location.baiduditu) == 0 \
-                and response.location.region != "" \
-                and response.location.query != "":
-                response.location.baiduditu = [OnePlace.model_validate(i) for i in BaiduDitu().invoke({"region":response.location.region,"query":response.location.query})]
-            return {"messages": [AIMessage(content=response.model_dump_json())],"task":response}
+            # if len(response.location.baiduditu) == 0 \
+            #     and response.location.region != "" \
+            #     and response.location.query != "":
+            #     response.location.baiduditu = [OnePlace.model_validate(i) for i in BaiduDitu().invoke({"region":response.location.region,"query":response.location.query})]
+            # return {"messages": [AIMessage(content=response.model_dump_json())],"task":response}
+            return {"messages":[response]}
+        # 这个节点在这里没有任何作用
         tool_node = ToolNode(tools=[BaiduDitu()])        
         # Define the (single) node in the graph
         builder.add_node("tools",tool_node)

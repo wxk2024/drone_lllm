@@ -15,20 +15,33 @@ from pydantic import (
 )
 from pydantic import ValidationError,model_validator
 from log import logger
-import json
+import json,os
 
 
 def _load_prompt(version: str)->ChatPromptTemplate:
     with open("prompt.json", "r", encoding="utf-8") as f:
         data = json.load(f)
-        messages = [
-            (msg["type"], msg["content"])
-            for entry in data
-            if entry["version"] == version
-            for msg in entry["template"]
-        ]
+        for entry in data:
+            if entry["version"] != version:
+                continue
+            if entry["file"] == True:
+                system_str = open(os.path.join("/root/L2_NLP_pipeline_pytorch/prompt",entry["version"]+'.txt'),encoding="utf-8").read()
+                messages = [
+                    ("system",system_str),
+                    ("user","{text}")
+                ]
+                print(messages)
+            else:
+                # TODO: 用的旧代码
+                messages = [
+                    (msg["type"], msg["content"])
+                    for entry in data
+                    if entry["version"] == version
+                    for msg in entry["template"]
+                ]
     pro = ChatPromptTemplate.from_messages(messages)
     logger.info("提示词加载完毕")
+    print("提示词加载完毕")
     logger.info(pro.model_dump_json())
     # print(pro)
     return pro
