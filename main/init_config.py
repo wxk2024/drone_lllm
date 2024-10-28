@@ -28,9 +28,7 @@ def _load_prompt(version: str)->ChatPromptTemplate:
                 system_str = open(os.path.join("/root/L2_NLP_pipeline_pytorch/prompt",entry["version"]+'.txt'),encoding="utf-8").read()
                 messages = [
                     ("system",system_str),
-                    ("user","{text}")
                 ]
-                print(messages)
             else:
                 # TODO: 用的旧代码
                 messages = [

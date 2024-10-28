@@ -39,10 +39,6 @@ app = FastAPI(
     version="1.0",
     description="A simple api server using Langchain's Runnable interfaces",)
 
-config = {"configurable": {"thread_id": "1"}}
-print(graph.invoke({"messages": settings._prompt.format_messages(text="测量任务")},config=config))
-print(graph.invoke({"messages": settings._prompt.format_messages(text="给我测量一下北京邮电大学操场的温度")},config=config))
-
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
@@ -54,13 +50,14 @@ class TaskDescription(BaseModel):
 
 
 @app.post("/masifan/v1")
-def get_task_v1(task:TaskDescription):
+async def get_task_v1(task:TaskDescription):
     config = {"configurable":{"thread_id":task.thread_id}}
-    return graph.invoke({"messages":settings._prompt.format_messages(text=task.text)},config=config)
+    # 这里的调用方式 更改了，减少了 token 的使用量
+    return await graph.ainvoke({"messages":[('user',task.text)]},config=config)
 
 # 这个地方不加上 =Depends() 就会报错,加上后会使得 request-type'Content-Type: multipart/form-data'
 @app.post("/masifan/v2")
-def get_task_v2(task:TaskDescription=Depends(),image_file:UploadFile=File(...)):
+async def get_task_v2(task:TaskDescription=Depends(),image_file:UploadFile=File(...)):
     config = {"configurable":{"thread_id":task.thread_id}}
     text_from_image = ""
     if image_file is not None:
@@ -89,9 +86,8 @@ def get_task_v2(task:TaskDescription=Depends(),image_file:UploadFile=File(...)):
         image = Image.open(image_path).convert('RGB')
         # TODO 这个地方的 input 参数有点耦合
         # nonlocal text_from_image
-        text_from_image = graph_builder.local_llm.invoke(input="请描述一下这张图片中主要物体的特征",image=image) 
-    return graph.invoke({"messages":settings._prompt.format_messages(text=task.text + text_from_image)},
-                        config=config)
+        text_from_image = await graph_builder.local_llm.ainvoke(input="请描述一下这张图片中主要物体的特征",image=image) 
+    return await graph.ainvoke({"messages":[('user',task.text+text_from_image)]}, config=config)
 
 
 app.add_middleware(

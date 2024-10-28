@@ -58,6 +58,7 @@ class GraphBuilder():
         self.graph = None               # langgraph 框架最主要的作用
         self.settings:Settings = None   # 通过用户传过来的配置信息
 
+    # 自定义的 RecAct 结构的 Agent
     def build(self):
         if self.llm is None or self.settings is None:
             raise
@@ -71,27 +72,30 @@ class GraphBuilder():
 
         builder = StateGraph(state_schema=State_New)
         # Define the function that calls the model
-        def call_model(state: State):
-            response = self.llm.invoke(state["messages"]) # response 现在已经被格式化了
-            # if len(response.location.baiduditu) == 0 \
-            #     and response.location.region != "" \
-            #     and response.location.query != "":
-            #     response.location.baiduditu = [OnePlace.model_validate(i) for i in BaiduDitu().invoke({"region":response.location.region,"query":response.location.query})]
-            # return {"messages": [AIMessage(content=response.model_dump_json())],"task":response}
+        async def call_model(state: State_New):
+            response = await self.llm.ainvoke(self.settings._prompt.format_messages()+state["messages"]) # response 现在已经被格式化了
             return {"messages":[response]}
+
         # 这个节点在这里没有任何作用
-        tool_node = ToolNode(tools=[BaiduDitu()])        
+        tools = [BaiduDitu()]
+        tool_node = ToolNode(tools=tools)        
+        self.llm.bind_tools(tools)  # 只有让 llm 知道有这个 tool 才可以
         # Define the (single) node in the graph
-        builder.add_node("tools",tool_node)
-        builder.add_node("model", call_model)
-        builder.add_edge(START, "model")
-        builder.add_edge("model",END)
+        builder.add_node("action",tool_node)
+        builder.add_node("agent", call_model)
+        builder.add_edge(START, "agent")
+        builder.add_edge("agent",END)
         builder.add_conditional_edges(
-            "model",
-            tools_condition,
+            # First, we define the start node. We use `agent`.
+            # This means these are the edges taken after the `agent` node is called.
+            "agent",
+            # Next, we pass in the function that will determine which node is called next.
+            self._should_continue,
+            # Next, we pass in the path map - all the possible nodes this edge could go to
+            ["action", END],
         )
         # Any time a tool is called, we return to the chatbot to decide the next step
-        builder.add_edge("tools", "model")
+        builder.add_edge("action", "agent")
 
         # Add memory
         memory = MemorySaver()
@@ -109,6 +113,17 @@ class GraphBuilder():
     def _set_structed_output(self,schema: Optional[_DictOrPydanticClass] = None):
         self.llm = self.llm.with_structured_output(FlyTask)
         logger.info("设置输出格式成功")
+
+    @staticmethod
+    def _should_continue(state: State_New):
+        """Return the next node to execute."""
+        last_message = state["messages"][-1]
+        # If there is no function call, then we finish
+        if not last_message.tool_calls:
+            return END
+        # Otherwise if there is, we continue
+        return "action"
+
 
     def set_llm(self,llm):
         self.llm = llm
