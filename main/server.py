@@ -15,6 +15,8 @@ from init_config import load_settings
 from output_format import FlyTask
 from local_model import ChatGLM4_LLM
 from PIL import Image
+from audio import RequestApi
+import aiohttp,json
 settings = load_settings()
 # 1.llm 该模型可以调用 with_structed 接口进行输出
 # 实现 text-to-txt 任务格式输出
@@ -71,7 +73,10 @@ async def get_task_v2(task:TaskDescription=Depends(),image_file:UploadFile=File(
         image_file.file.seek(0)
         
         # 生成图片名称
-        image_name = f"{image_hash}.jpg"
+        if image_file.content_type == "image/png":
+            image_name = f"{image_hash}.png"
+        else:
+            image_name = f"{image_hash}.jpeg"
         
         # 生成图片路径
         image_dir = os.path.join("../session/", task.thread_id)
@@ -89,6 +94,42 @@ async def get_task_v2(task:TaskDescription=Depends(),image_file:UploadFile=File(
         text_from_image = await graph_builder.local_llm.ainvoke(input="请描述一下这张图片中主要物体的特征",image=image) 
     return await graph.ainvoke({"messages":[('user',task.text+text_from_image)]}, config=config)
 
+# 这个地方不加上 =Depends() 就会报错,加上后会使得 request-type'Content-Type: multipart/form-data'
+@app.post("/masifan/v3")
+async def get_task_v2(task:TaskDescription=Depends(),audio_file:UploadFile=File(...)):
+    config = {"configurable":{"thread_id":task.thread_id}}
+    if audio_file is not None:
+        if audio_file.content_type != "audio/wav":
+            raise HTTPException(status_code=404, detail="audio file type is not wav")
+
+        import hashlib,os
+        image_hash = hashlib.md5(await audio_file.read()).hexdigest()
+        
+        await audio_file.seek(0)
+        
+        audio_name = f"{image_hash}.wav"
+        
+        audio_dir = os.path.join("../session/", task.thread_id)
+        os.makedirs(audio_dir, exist_ok=True)  # 确保目录存在
+        audio_path = os.path.join(audio_dir, audio_name)
+        
+        with open(audio_path, "wb") as f:
+            f.write(await audio_file.read())
+
+        api = RequestApi(appid="15e45969",
+                     secret_key="8df6525efbe55ca8db5104df369ca975",
+                     upload_file_path=audio_path)
+        async with aiohttp.ClientSession() as session:
+            res = await api.get_result(session)
+            res = json.loads(res["content"]["orderResult"])
+        ss = []
+        for i in res["lattice2"]:
+            ss_ = []
+            for j in i["json_1best"]["st"]["rt"][0]["ws"]:
+                ss_.append(j["cw"][0]["w"])
+            ss.append("".join(ss_))
+
+    return await graph.ainvoke({"messages":[('user',"\n".join(ss))]}, config=config)
 
 app.add_middleware(
     CORSMiddleware,
