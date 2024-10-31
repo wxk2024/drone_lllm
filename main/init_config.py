@@ -25,7 +25,7 @@ def _load_prompt(version: str)->ChatPromptTemplate:
             if entry["version"] != version:
                 continue
             if entry["file"] == True:
-                system_str = open(os.path.join("/root/L2_NLP_pipeline_pytorch/prompt",entry["version"]+'.txt'),encoding="utf-8").read()
+                system_str = open(os.path.join("../prompt",entry["version"]+'.txt'),encoding="utf-8").read()
                 messages = [
                     ("system",system_str),
                 ]

@@ -21,3 +21,4 @@ test_server/
 /test_grpc/*
 !/test_grpc/llm.proto
 
+spec_list.txt

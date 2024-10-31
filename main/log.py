@@ -5,7 +5,7 @@ import os
 
 logger = logging.getLogger(__name__)
 logger.setLevel(level = logging.INFO)
-handler = logging.FileHandler(os.path.join("/root/L2_NLP_pipeline_pytorch/log","%s.txt"%(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))))
+handler = logging.FileHandler(os.path.join("../log","%s.txt"%(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))))
 handler.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - "%(pathname)s", line %(lineno)d - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
