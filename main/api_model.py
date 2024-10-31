@@ -52,7 +52,7 @@ class GraphBuilder():
     _BM = TypeVar("_BM", bound=BaseModel)
     _DictOrPydanticClass = Union[Dict[str, Any], Type[_BM], Type]
     def __init__(self):
-        self.llm = None                 # online 大模型用来文本对话
+        self.llm = None                 # ollama 多模态大模型用来文本+图片
         self.local_llm = None           # local  大模型用来图片转文字
         self.prompt = None              # 提示词：通过prompt.json
         self.graph = None               # langgraph 框架最主要的作用
@@ -129,8 +129,6 @@ class GraphBuilder():
         self.llm = llm
     def set_settings(self,settings:Settings):
         self.settings = settings
-    def set_local_llm(self,local_llm):
-        self.local_llm = local_llm
 
 
 # ---

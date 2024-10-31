@@ -1,18 +1,21 @@
-# 方便用户输入的大模型 service
+# LangChain + Ollama + Fastapi 本地大模型
+## 方便用户输入的大模型 service
 1. 采用 fastapi 框架提供服务
 2. 提供 v1 和 v2 两个接口
 - v1: 接收用户的文字描述，提取特征信息
 - v2: 接收用户的文字描述和对象的图片，提取特征信息
-3. 大模型输出格式为 json 字符串
+3. 使用本地大模型 hhao/openbmb-minicpm-llama3-v-2_5 来处理文字和图片信息
 4. 和用户聊天交互实现信息不断完整
 
-# 10月30日的一次对话示例
+## 10月30日的一次对话示例
 ### 
-- human
+<details>
+<summary>human</summary>
 ```
 应急任务
 ```
-- ai
+<details>
+<summary>ai</summary>
 ```
 {
   "messages": [
@@ -77,12 +80,14 @@
 }
 ```
 
-- human
+<details>
+<summary>human</summary>
 ```
 测量唐山地震的受灾情况，注意测量当地的温度，湿度
 ```
 
-- ai
+<details>
+<summary>ai</summary>
 ```
 {
   "messages": [
