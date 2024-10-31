@@ -11,12 +11,14 @@
 ### 
 <details>
 <summary>human</summary>
-```
+```json
 应急任务
 ```
+</details>
+
 <details>
 <summary>ai</summary>
-```
+```json
 {
   "messages": [
     {
@@ -79,16 +81,18 @@
   ]
 }
 ```
+</details>
 
 <details>
 <summary>human</summary>
 ```
 测量唐山地震的受灾情况，注意测量当地的温度，湿度
 ```
+</details>
 
 <details>
 <summary>ai</summary>
-```
+```json
 {
   "messages": [
     {
@@ -208,13 +212,18 @@
   ]
 }
 ```
-- human
-```
-没有了
-```
+</details>
 
-- ai
-```
+<details>
+<summary>human</summary>
+```json
+没有了
+</details>
+
+
+<details>
+<summary>ai</summary>
+```json
 {
   "messages": [
     {
@@ -391,6 +400,7 @@
   ]
 }
 ```
+</details>
 
 # 10月23日一次对话示例(使用同一个 thread_id)
 ### 第一次问答：
