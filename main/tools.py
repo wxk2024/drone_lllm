@@ -3,6 +3,7 @@ from langchain.tools import BaseTool
 import json
 from urllib.request import urlopen, quote
 import requests,csv
+from langchain_core.tools import tool
 
 class BaiduDitu(BaseTool):
   name:str = "BaiduDitu"
@@ -53,3 +54,16 @@ class BaiduDitu(BaseTool):
        fanhui.append(one)
     return fanhui
     
+from datetime import datetime
+# class DateTool(BaseTool):
+#   name:str = "DateTool"
+#   description:str = "获取当前日期和时间"
+#   def _run(self)->datetime:
+#     print(datetime.now())
+#     return datetime.now()
+
+@tool
+def get_datetime():
+  """得到当前的时间"""
+  return datetime.now()
+  

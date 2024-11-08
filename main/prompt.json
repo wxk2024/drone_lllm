@@ -30,5 +30,17 @@
   {
     "version": "v3",
     "file":true  
+  },
+  {
+    "version": "v4",
+    "file":true  
+  },
+  {
+    "version": "v5",
+    "file":true  
+  },
+  {
+    "version": "v6",
+    "file":true  
   }
 ]

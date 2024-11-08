@@ -58,6 +58,7 @@ class Settings(BaseSettings):
     openai_api_key:str=Field(validation_alias="OPENAI_API_KEY")
     openai_api_base:str=Field(validation_alias="OPENAI_API_BASE")
     huggingfacehub_api_token:str=Field(validation_alias="HUGGINGFACEHUB_API_TOKEN")
+    ollama_model:str=Field(validation_alias="OLLAMA_MODEL")
     ollama_multimodal:str=Field(validation_alias="OLLAMA_MULTIMODAL")
 
     # 必须要隐藏起来，否则的话 init 函数通过不了

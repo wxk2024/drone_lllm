@@ -10,6 +10,8 @@ from langchain_core.messages import HumanMessage,AIMessage,SystemMessage
 from langchain.chains import LLMChain
 from langchain.memory import ConversationBufferMemory
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnableConfig
+from langchain_core.output_parsers import PydanticOutputParser
 from langserve import add_routes
 from langchain_core.chat_history import (
     BaseChatMessageHistory,
@@ -23,10 +25,12 @@ from typing_extensions import Annotated, TypedDict
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import START, MessagesState, StateGraph,END
 from langgraph.prebuilt import ToolNode, tools_condition
-from tools import BaiduDitu
-from output_format import FlyTask,OnePlace
+from tools import BaiduDitu,get_datetime
+from output_format import FlyTask,AiResponse
 from log import logger
 from init_config import Settings
+from datetime import datetime
+from langchain_ollama import ChatOllama
 import json
 from typing import (
     Dict,
@@ -42,7 +46,7 @@ from typing import (
 # 创建自己的状态
 class State(TypedDict):
     messages: Annotated[list, add_messages]
-    task: FlyTask
+    task: AiResponse
 
 # 由于当前任务字段迟迟确定不了，只好用这个了！
 class State_New(TypedDict):
@@ -52,39 +56,64 @@ class GraphBuilder():
     _BM = TypeVar("_BM", bound=BaseModel)
     _DictOrPydanticClass = Union[Dict[str, Any], Type[_BM], Type]
     def __init__(self):
-        self.llm = None                 # ollama 多模态大模型用来文本+图片
-        self.local_llm = None           # local  大模型用来图片转文字
+        self.text_llm = None                 # ollama 大模型用来文本
+        self.image_llm = None           # local  大模型用来图片转文字
         self.prompt = None              # 提示词：通过prompt.json
         self.graph = None               # langgraph 框架最主要的作用
         self.settings:Settings = None   # 通过用户传过来的配置信息
 
     # 自定义的 RecAct 结构的 Agent
     def build(self):
-        if self.llm is None or self.settings is None:
+        if self.text_llm is None or self.settings is None:
             raise
 
         # 加载 smith
         # 加载 output_structure
         self._load_smith()
         # 由于 task 字段没有办法确认
-        # self._set_structed_output()
         logger.info("开始创建 langgraph")
+        builder = StateGraph(state_schema=State)
 
-        builder = StateGraph(state_schema=State_New)
         # Define the function that calls the model
-        async def call_model(state: State_New):
-            response = await self.llm.ainvoke(self.settings._prompt.format_messages()+state["messages"]) # response 现在已经被格式化了
-            return {"messages":[response]}
+        async def call_model(state: State,config:RunnableConfig):
+            now_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            response = await self.text_llm.ainvoke(self.settings._prompt.format_messages() + [SystemMessage(content="当前的时间是"+now_time)] +state["messages"])
+            print(response)
+            return {"messages":response}
+        
+        async def format_output(state:State,config:RunnableConfig):
+            now_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            logger.info("format_output",config["configurable"])
+            # TODO
+            text_llm = ChatOpenAI(
+                    temperature=0.0,
+                    # model="gpt-3.5-turbo-16k",
+                    model=self.settings.openai_model,
+                    api_key=self.settings.openai_api_key,
+                    base_url=self.settings.openai_api_base
+            )
+            text_llm = ChatOllama(model=self.settings.ollama_model,
+                 temperature=0.8,
+                 keep_alive=10 * 60)
+            parser = PydanticOutputParser(pydantic_object=AiResponse)
+            format_instructions =parser .get_format_instructions()
+            format_llm = text_llm.with_structured_output(AiResponse)
+            to_user = await format_llm.ainvoke(self.settings._prompt.format_messages()+[SystemMessage(content="当前的时间是"+now_time)]+state["messages"] + [HumanMessage(content=f"通过以下格式回复我\n {format_instructions}")])
+            logger.info(to_user)
+            return {"task":to_user}
 
-        # 这个节点在这里没有任何作用
-        tools = [BaiduDitu()]
+        # TODO 这个节点在这里没有任何作用,因为我是在提示词里面写好的模板
+        tools = [get_datetime]
         tool_node = ToolNode(tools=tools)        
-        self.llm.bind_tools(tools)  # 只有让 llm 知道有这个 tool 才可以
+        self.text_llm = self.text_llm.bind_tools(tools)  # 只有让 llm 知道有这个 tool 才可以
+        # self._set_structed_output()
         # Define the (single) node in the graph
         builder.add_node("action",tool_node)
         builder.add_node("agent", call_model)
+        builder.add_node("format", format_output)
         builder.add_edge(START, "agent")
-        builder.add_edge("agent",END)
+        # builder.add_edge("agent","format")
+        builder.add_edge("format",END)
         builder.add_conditional_edges(
             # First, we define the start node. We use `agent`.
             # This means these are the edges taken after the `agent` node is called.
@@ -92,7 +121,7 @@ class GraphBuilder():
             # Next, we pass in the function that will determine which node is called next.
             self._should_continue,
             # Next, we pass in the path map - all the possible nodes this edge could go to
-            ["action", END],
+            ["action", "format"],
         )
         # Any time a tool is called, we return to the chatbot to decide the next step
         builder.add_edge("action", "agent")
@@ -111,22 +140,24 @@ class GraphBuilder():
         logger.info("langchain smith 监控设置完毕")
 
     def _set_structed_output(self,schema: Optional[_DictOrPydanticClass] = None):
-        self.llm = self.llm.with_structured_output(FlyTask)
+        self.text_llm = self.text_llm.with_structured_output(AiResponse)
         logger.info("设置输出格式成功")
 
     @staticmethod
-    def _should_continue(state: State_New):
+    def _should_continue(state: State):
         """Return the next node to execute."""
         last_message = state["messages"][-1]
+        print("_should_continue")
         # If there is no function call, then we finish
         if not last_message.tool_calls:
-            return END
+            return "format"
         # Otherwise if there is, we continue
         return "action"
 
-
+    def set_image_llm(self,image_llm):
+        self.image_llm = image_llm
     def set_llm(self,llm):
-        self.llm = llm
+        self.text_llm = llm
     def set_settings(self,settings:Settings):
         self.settings = settings
 
