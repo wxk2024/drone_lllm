@@ -19,6 +19,7 @@ from audio import RequestApi
 import aiohttp,json
 from langchain_ollama import ChatOllama
 import base64
+from audio_server import make_async_request
 
 settings = load_settings()
 # 1.llm 该模型可以调用 with_structed 接口进行输出
@@ -130,20 +131,9 @@ async def get_task_v2(task:TaskDescription=Depends(),audio_file:UploadFile=File(
         with open(audio_path, "wb") as f:
             f.write(await audio_file.read())
 
-        api = RequestApi(appid="15e45969",
-                     secret_key="8df6525efbe55ca8db5104df369ca975",
-                     upload_file_path=audio_path)
-        async with aiohttp.ClientSession() as session:
-            res = await api.get_result(session)
-            res = json.loads(res["content"]["orderResult"])
-        ss = []
-        for i in res["lattice2"]:
-            ss_ = []
-            for j in i["json_1best"]["st"]["rt"][0]["ws"]:
-                ss_.append(j["cw"][0]["w"])
-            ss.append("".join(ss_))
+        ss = await make_async_request(audio_path)
 
-    return (await graph.ainvoke({"messages":[('user',"\n".join(ss))]}, config=config))["task"]
+    return (await graph.ainvoke({"messages":[('user',ss['transcription'])]}, config=config))["task"]
 
 app.add_middleware(
     CORSMiddleware,

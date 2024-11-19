@@ -80,9 +80,9 @@ class RequestApi:
 
 
 async def main():
-    api = RequestApi(appid="15e45969",
-                     secret_key="8df6525efbe55ca8db5104df369ca975",
-                     upload_file_path=r"audio/lfasr_涉政.wav")
+    api = RequestApi(appid="your appid",
+                     secret_key="your secret_key",
+                     upload_file_path=r"")
     async with aiohttp.ClientSession() as session:
         result = await api.get_result(session)
         res = json.loads(result["content"]["orderResult"])

@@ -85,19 +85,19 @@ class GraphBuilder():
             now_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             logger.info("format_output",config["configurable"])
             # TODO
-            text_llm = ChatOpenAI(
-                    temperature=0.0,
-                    # model="gpt-3.5-turbo-16k",
-                    model=self.settings.openai_model,
-                    api_key=self.settings.openai_api_key,
-                    base_url=self.settings.openai_api_base
-            )
-            text_llm = ChatOllama(model=self.settings.ollama_model,
-                 temperature=0.8,
-                 keep_alive=10 * 60)
+            # text_llm = ChatOpenAI(
+            #         temperature=0.0,
+            #         # model="gpt-3.5-turbo-16k",
+            #         model=self.settings.openai_model,
+            #         api_key=self.settings.openai_api_key,
+            #         base_url=self.settings.openai_api_base
+            # )
+            # text_llm = ChatOllama(model=self.settings.ollama_model,
+            #      temperature=0.8,
+            #      keep_alive=10 * 60)
             parser = PydanticOutputParser(pydantic_object=AiResponse)
             format_instructions =parser .get_format_instructions()
-            format_llm = text_llm.with_structured_output(AiResponse)
+            format_llm = self.text_llm.with_structured_output(AiResponse)
             to_user = await format_llm.ainvoke(self.settings._prompt.format_messages()+[SystemMessage(content="当前的时间是"+now_time)]+state["messages"] + [HumanMessage(content=f"通过以下格式回复我\n {format_instructions}")])
             logger.info(to_user)
             return {"task":to_user}
