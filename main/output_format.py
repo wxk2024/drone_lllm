@@ -39,7 +39,7 @@ class FlyTask(BaseModel):
 
 class AiResponse(BaseModel):
     answer_and_ask:str = Field(description="给用户的最新回复")
-    task:FlyTask = Field(description="本次对话中确定下来的任务",default=None)
+    task:Optional[FlyTask] = Field(description="本次对话中确定下来的任务",default=None)
 
 # 和上面两个一摸一样
 # class FlyTaskNew(TypedDict):

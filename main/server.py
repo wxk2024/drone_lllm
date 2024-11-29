@@ -2,24 +2,15 @@ from fastapi import FastAPI,UploadFile,File,Depends,Form
 from fastapi.responses import RedirectResponse
 # from langserve import add_routes
 from fastapi.middleware.cors import CORSMiddleware
-from langchain.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field,ValidationError
-from typing import Optional,Dict,List,Union
-from langchain_core.messages import HumanMessage,AIMessage,SystemMessage
 from fastapi import Depends, FastAPI, Header, HTTPException
-from typing_extensions import Annotated, TypedDict
 from api_model import GraphBuilder
 from log import logger
 from init_config import load_settings
-from output_format import FlyTask,AiResponse
-from local_model import ChatGLM4_LLM
-from PIL import Image
-from audio import RequestApi
-import aiohttp,json
 from langchain_ollama import ChatOllama
 import base64
-from audio_server import make_async_request
+import requests
+from output_format import FlyTask
 
 settings = load_settings()
 # 1.llm 该模型可以调用 with_structed 接口进行输出
@@ -34,8 +25,9 @@ settings = load_settings()
 #     base_url=settings.openai_api_base
 # )
 text_llm = ChatOllama(model=settings.ollama_model,
-                 temperature=0.8,
-                 keep_alive=10 * 60)
+                 temperature=0.3,
+                 keep_alive=10 * 60,
+                 top_k=10)
 
 image_llm = ChatOllama(model=settings.ollama_multimodal,
                  temperature=0.3,
@@ -67,7 +59,10 @@ class TaskDescription(BaseModel):
 async def get_task_v1(task:TaskDescription):
     config = {"configurable":{"thread_id":task.thread_id,"run_name":"text call"}}
     # 这里的调用方式 更改了，减少了 token 的使用量
-    return (await graph.ainvoke({"messages":[('user',task.text)]},config=config))["task"]
+    res = (await graph.ainvoke({"messages":[('user',task.text)]},config=config))["task"]
+    if res.task is None:
+        res.task = FlyTask()
+    return res
 
 # 这个地方不加上 =Depends() 就会报错,加上后会使得 request-type'Content-Type: multipart/form-data'
 @app.post("/masifan/v2")
@@ -109,6 +104,19 @@ async def get_task_v2(task:TaskDescription=Depends(),image_file:UploadFile=File(
     return (await graph.ainvoke({"messages":[('user',task.text+text_from_image.content)]}, config=config))["task"]
     # return await graph.ainvoke({"messages":[('user',[{"type":"text","text":task.text},{"type":"image_url","image_url":f"data:image/jpeg;base64,{image_base64}"}])]}, config=config)
 
+def make_audio_request(audio_path):
+    url = "http://localhost:8001/"
+    headers = {'Content-Type': 'application/json'}
+    with open(audio_path, "rb") as f:
+        wav = base64.b64encode(f.read()).decode()
+    data = {"wav": wav}
+    response = requests.post(url+"asr", headers=headers, json=data)
+    response = response.json()
+    if response['code'] == 0:
+        res = response['res']
+        return res
+    else:
+        return response['msg']
 # 这个地方不加上 =Depends() 就会报错,加上后会使得 request-type'Content-Type: multipart/form-data'
 @app.post("/masifan/v3")
 async def get_task_v2(task:TaskDescription=Depends(),audio_file:UploadFile=File(...)):
@@ -131,9 +139,9 @@ async def get_task_v2(task:TaskDescription=Depends(),audio_file:UploadFile=File(
         with open(audio_path, "wb") as f:
             f.write(await audio_file.read())
 
-        ss = await make_async_request(audio_path)
+        ss = make_audio_request(audio_path)
 
-    return (await graph.ainvoke({"messages":[('user',ss['transcription'])]}, config=config))["task"]
+    return (await graph.ainvoke({"messages":[('user',ss)]}, config=config))["task"]
 
 app.add_middleware(
     CORSMiddleware,

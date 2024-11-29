@@ -1,75 +1,44 @@
 import torch
-from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
-from datasets import load_dataset
-from fastapi import FastAPI,UploadFile,File,Depends,Form,HTTPException
-from fastapi.responses import RedirectResponse
-# from langserve import add_routes
-from fastapi.middleware.cors import CORSMiddleware
-import urllib.parse
-import aiohttp
-
-async def make_async_request(audio_path):
-    base_url = "http://localhost:8001/audio"
-    encoded_audio_path = urllib.parse.quote(audio_path)
-    url = f"{base_url}?audio_path={encoded_audio_path}"
-    headers = {"accept": "application/json"}
-
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, headers=headers) as response:
-            if response.status == 200:
-                return await response.json()
-            else:
-                raise Exception(f"请求失败，状态码: {response.status}")
-
+import base64
 import uvicorn
-device = "cuda:0" if torch.cuda.is_available() else "cpu"
-torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
+from fastapi import FastAPI
+from funasr import AutoModel
+from funasr.utils.postprocess_utils import rich_transcription_postprocess
+from pydantic import BaseModel
 
-model_id = "openai/whisper-large-v3"
-
-model = AutoModelForSpeechSeq2Seq.from_pretrained(
-    model_id, torch_dtype=torch_dtype, 
-    low_cpu_mem_usage=True, 
-    use_safetensors=True,
-    cache_dir="/home/user/wangxiaoke/TransModel",
-    local_files_only=True
-)
-model.to(device)
-
-processor = AutoProcessor.from_pretrained(model_id,
-    cache_dir="/home/user/wangxiaoke/TransModel",
-    local_files_only=True)
-
-pipe = pipeline(
-    "automatic-speech-recognition",
-    model=model,
-    tokenizer=processor.tokenizer,
-    feature_extractor=processor.feature_extractor,
-    torch_dtype=torch_dtype,
-    device=device,
-    return_timestamps=True,
+# asr model
+model = AutoModel(
+    model="iic/SenseVoiceSmall",
+    trust_remote_code=True,
+    remote_code="./model.py",
+    vad_model="fsmn-vad",
+    vad_kwargs={"max_single_segment_time": 30000},
+    device="cuda:0",
 )
 
-# import gradio as gr
-# gr.Interface.from_pipeline(pipe).launch(server_name='0.0.0.0',server_port=8001)
+# 定义asr数据模型，用于接收POST请求中的数据
+class ASRItem(BaseModel):
+    wav : str # 输入音频
 
-audio_app = FastAPI(
-    title="Pipeline audio-to-text Server",
-    version="1.0",
-    description="A simple api server audio-to-text",)
-
-@audio_app.get("/")
-def read_root():
-    return {"Hello": "audio"}
-
-@audio_app.get("/audio")
-async def audio_to_text(audio_path: str):
+app = FastAPI()
+@app.post("/asr")
+async def asr(item: ASRItem):
     try:
-        result = pipe(audio_path)
-        return {"transcription": result["text"]}
+        data = base64.b64decode(item.wav)
+        with open("test.wav", "wb") as f:
+            f.write(data)
+        res = model.generate("test.wav", 
+                            language="auto",  # "zn", "en", "yue", "ja", "ko", "nospeech"
+                            use_itn=True,
+                            batch_size_s=60,
+                            merge_vad=True,  #
+                            merge_length_s=15,)
+        text = rich_transcription_postprocess(res[0]["text"])
+        result_dict = {"code": 0, "msg": "ok", "res": text}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing audio: {str(e)}")
-if __name__ == "__main__":
+        result_dict = {"code": 1, "msg": str(e)}
+    return result_dict
 
+if __name__ == '__main__':
+    uvicorn.run(app, host='0.0.0.0', port=8001)
 
-    uvicorn.run(app='audio_server:audio_app', host="0.0.0.0", port=8001)
